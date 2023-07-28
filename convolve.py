@@ -10,11 +10,11 @@ Author: Paul Johnson
 
 Difficulty Level: 7/10
 
-Prompt: You’ve made it to a mini Grand Prix sprint race with only two obstacles,
-and you’ve only had enough time to test each obstacle separately in your labs.
-In your lab you found the average time to complete an obstacle event for each
+Prompt: You’ve made it to a mini Grand Prix sprint race with only two obstacles, 
+and you’ve only had enough time to test each obstacle separately in your labs. 
+In your lab you found the average time to complete an obstacle event for each 
 code design A and B for each obstacle 1 (a complex feature) and 2 (a straightaway).
-You want to be 90% confident that one code design is better than another for the final run for both obstacles 1 and 2.
+You want to be 90% confident that one code design is better than another for the final run for both obstacles 1 and 2. 
 
 See the background below for the tools you will use to figure this out. In the prompt below data
 
@@ -26,23 +26,25 @@ times around an average time until an event. It requires an input of the average
 event rate per second: r (events/second), and outputs a measure of probability density.
 
 - It’s probability density function (PDF) is f(t) = r  exp (-r t) and PDF literally says:
-The probability of an event occurring between [t, t+t] is the event rate per second r,
+The probability of an event occurring between [t, t+t] is the event rate per second r, 
 times the probability that an event has not occurred yet exp( -r t), known as the survival function.
 
 2) Uniform distribution - widely distributed times
-A uniform distribution has many applications when any value is expected between t[a,b] with
+A uniform distribution has many applications when any value is expected between t[a,b] with 
 no clear preferred value.
 Statistical methods exist beyond the scope of this problem to identify if a data set belongs to
 a symmetrical uniform and normal distributions.
 
 
 3) Convolution
-Given the prompt below, complete the convolution integral for the equation given in the picture.
+Given the prompt below, complete the convolution integral for the equation given in the picture. 
 
 Prompt
 [TODO] #1 Complete the convolution integral for design , validate the test case.
-[TODO] #2 Implement a search algorithm given probModelAX to determine the time to completion (timeModelAX) with 90% probability of confidence.
+[TODO] #2 Implement a search algorithm given probModelAX to determine the time to completion (timeModelAX) with 90% probability of confidence. 
 """
+
+#import matplotlib.pyplot as plt 
 
 class DataInput:
     def __init__(self):
@@ -53,7 +55,7 @@ class DataInput:
         self.mean2A = sum(self.timesObs2A)/len(self.timesObs1A)
         self.T = 50
         self.ti = [t for t in range(self.T)]
-
+        
 class Solution:
     def __init__(self, data):
         self.data = data
@@ -63,7 +65,7 @@ class Solution:
         self.mean1A = self.data.mean1A
         self.mean2A = self.data.mean2A
         self.timeModelA = self.search_ppf(self.compute_cdf(), self.data.probModel, epsilon=1e-4)
-
+        
     def exp(self, x, terms=100):
         """Compute the exponential function
 
@@ -73,7 +75,7 @@ class Solution:
 
         Returns:
             float: The value of e^x
-        """
+        """    
         result = 0
         x_power = 1
         factorial = 1
@@ -93,6 +95,12 @@ class Solution:
         """
         return r*self.exp(-r*t)
 
+    def deep(self,list_a):
+        end = []
+        for i in list_a:
+            end.append(i)
+        return end
+    
     def uniformPDF(self, t,a,b):
         """Compute the probability density function for the uniform probability distribution.
         Args:
@@ -104,7 +112,7 @@ class Solution:
         if a <= t and t <= b:
             return (1/(b-a))
         else:
-            return 0
+            return 0 
 
     def integrateTrapz(self, f,x):
         """Perform trapezoidal integration, approximating the area under the curve over width h.
@@ -124,32 +132,13 @@ class Solution:
 
     def compute_convolution(self):
         convolutionA = []
-        """ 
-        [TODO] (1a) Do for every time step t_i:
-        """
         for i in range(len(self.data.ti)):
-            # 1b) Define f - Uniform probability density function for obstacle 1 (Design A)
-            f = [self.uniformPDF(tau, min(self.data.timesObs1A), max(self.data.timesObs1A)) for tau in self.data.ti]
-
-            # 1c) Define g - Exponential probability density function for obstacle 2 (Design A)
-            g = [self.exponentialPDF(tau, 1/self.data.mean2A) for tau in self.data.ti]
-
-            # 1d) Form the integrand f(tau) * g(t - tau)
-            integrand = [f[j] * g[i - j] for j in range(i + 1)]
-
-            # 1e) Integrate the integrand using trapezoidal rule
-            convolution_result = self.integrateTrapz(integrand, self.data.ti[:i + 1])
-            convolutionA.append(convolution_result)
-
-        """
-            [TODO] (1d) Form the integrand f(tau)*g(t-tau) 
-        """
-        # I =
-        """ 
-            [TODO] (1e) Integrate I over t_i[:i+1]
-        """
-        # ...
-
+            f = self.f1A[:i+1]
+            g = self.f2A[i::-1]
+            Cj = []
+            for j in range(len(f)):
+                Cj.append(f[j]*g[j])
+            convolutionA.append(self.integrateTrapz(Cj, self.data.ti[:i+1]))
         return convolutionA
 
     def compute_cdf(self):
@@ -157,25 +146,33 @@ class Solution:
         self.convolutionA = [self.convolutionA[i]/A for i in range(len(self.convolutionA))]
         return [self.integrateTrapz(self.convolutionA[:i], self.data.ti[:i]) for i in self.data.ti[1:]]
 
-
-    def search_ppf(cdf_values, target, epsilon=1e-6):
+        
+    def search_ppf(self, cdf_values, target, epsilon=1e-6):
         """
         Calculate the PPF (point percent function = inverse cuumulative distribution function [CDF])
         of a probability distribution using search.
-
+        
         This will find the X axis value of a given y axis value input
-
+        
         cdf_values (list): A sorted list representing the CDF from 0 to 1.
         target (float): The target probability for which the PPF is computed.
         epsilon (float): The tolerance level for the search.
 
         return (float): The PPF of the probability distribution.
         """
-
-        """
-        [TODO] (2) Implement search function here
-        """
-        return
+        
+        low = 0
+        high = len(cdf_values)-1
+        while high - low > 1:
+            mid = (low + high) // 2
+            if cdf_values[mid] < target:
+                low = mid
+            else:
+                high = mid
+        if abs(cdf_values[high] - target) < epsilon:
+            return high
+        else:
+            return low
 
 
 
@@ -190,6 +187,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
